@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "name": "shardsafe-frontend",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "VITE_API_URL": "http://13.201.133.102:5000"
+  }
+}

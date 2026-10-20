@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShardSafe — Cloud Computing Project Documentation & Architecture</title>
+  <meta name="description" content="Technical documentation and AWS deployment architecture for ShardSafe: Secure Cloud File Vault with Block-Level Encryption, Amazon S3, Amazon RDS PostgreSQL, Amazon EC2, and Amazon CloudFront CDN.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: #0d121c;
+      --card-border: #1e283b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --cyan: #06b6d4;
+      --indigo: #6366f1;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    header {
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #fff;
+      font-size: 1.15rem;
+    }
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: var(--cyan);
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .nav-links { display: flex; gap: 1.25rem; font-size: 0.85rem; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: #fff; }
+    .hero {
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .cta-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--indigo));
+      color: #fff;
+      box-shadow: 0 4px 20px -4px rgba(6, 182, 212, 0.4);
+    }
+    .btn-secondary {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: var(--cyan); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+    .section-title {
+      font-size: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 3.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: rgba(6, 182, 212, 0.5); }
+    .card h3 {
+      font-size: 1.05rem;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0.5rem 0;
+    }
+    .card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+    .card-badge {
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+    .flow-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .step-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .step-item {
+      background: rgba(7, 9, 14, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+    .step-num {
+      font-size: 0.75rem;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .step-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.35rem;
+    }
+    .step-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th {
+      background: rgba(7, 9, 14, 0.6);
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+    td code {
+      background: rgba(6, 182, 212, 0.1);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.35rem;
+      color: var(--cyan);
+      font-size: 0.75rem;
+    }
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <div class="brand">
+        <span>ShardSafe</span>
+        <span class="badge">AWS Mumbai • ap-south-1</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#problem">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#crypto">Encryption</a>
+        <a href="#aws">AWS Services</a>
+        <a href="#demo">Faculty Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <span class="badge" style="margin-bottom: 1rem; display: inline-block;">Client-Side AES-256-GCM • Amazon S3 & RDS</span>
+    <h1>Zero-Knowledge Cloud File Vault</h1>
+    <p>
+      Complete architectural and deployment specifications for <strong>ShardSafe</strong>. Demonstrating client-side file segmentation, AES-256-GCM block encryption, direct Amazon S3 transfers via presigned URLs, Amazon RDS PostgreSQL catalog indexing, and Amazon CloudFront CDN distribution with Origin Access Control.
+    </p>
+    <div class="cta-group">
+      <a href="#demo" class="btn btn-primary">Faculty Demonstration Checklist</a>
+      <a href="#aws" class="btn btn-secondary">AWS Configuration Blueprint</a>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- Section 1: Problem & Objectives -->
+    <section id="problem" style="margin-bottom: 4rem;">
+      <h2 class="section-title">1. Problem Statement & Core Objectives</h2>
+      <p class="section-desc">Traditional cloud storage solutions expose unencrypted data and monolithic files to provider infrastructure.</p>
+
+      <div class="grid-4">
+        <div class="card">
+          <span class="card-badge">Vulnerability #1</span>
+          <h3>Data Leakage at Rest</h3>
+          <p>Storing unencrypted raw files allows rogue insiders or misconfigured bucket permissions to expose sensitive documents directly.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge">Vulnerability #2</span>
+          <h3>Monolithic Upload Failures</h3>
+          <p>Uploading large 50+ MB files over unstable networks forces users to restart the entire file from 0% upon any transient packet loss.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge">ShardSafe Solution #1</span>
+          <h3>Zero-Knowledge WebCrypto</h3>
+          <p>Plaintext and passphrases never leave the browser. Every block is encrypted with AES-256-GCM before transmission to S3.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge">ShardSafe Solution #2</span>
+          <h3>Independent 1 MiB Blocks</h3>
+          <p>Files are divided into numbered segments. Failed chunks retry independently, eliminating server bottlenecks via presigned S3 URLs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Four AWS Services -->
+    <section id="aws" style="margin-bottom: 4rem;">
+      <h2 class="section-title">2. Mandatory AWS Services Breakdown</h2>
+      <p class="section-desc">Every service performs genuine production cloud workloads with least-privilege security configurations.</p>
+
+      <div class="grid-4">
+        <div class="card">
+          <span class="card-badge" style="color: var(--amber);">Compute Layer</span>
+          <h3>Amazon EC2</h3>
+          <p>Hosts Node.js and Express backend API. Issues short-lived presigned S3 URLs, coordinates upload verification, validates user file ownership, and connects to RDS through private VPC networking.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge" style="color: var(--indigo);">Relational DB</span>
+          <h3>Amazon RDS (PostgreSQL)</h3>
+          <p>Stores users, password hashes (bcrypt), per-file salt, key derivation parameters, block numbers, S3 object keys, unique IVs, checksums, and audit logs. Private security group scoped to EC2.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge" style="color: var(--emerald);">Object Storage</span>
+          <h3>Amazon S3 Vault</h3>
+          <p>Stores encrypted ciphertext blocks using opaque keys: <code>vault/{userId}/{fileId}/part-XXXXXX.bin</code>. Public access is permanently blocked. Direct transfers via presigned PUT and GET URLs.</p>
+        </div>
+        <div class="card">
+          <span class="card-badge" style="color: var(--cyan);">CDN Distribution</span>
+          <h3>Amazon CloudFront</h3>
+          <p>Global edge distribution for technical documentation. Serves content via HTTPS with Origin Access Control (OAC), ensuring the documentation S3 bucket remains completely private.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Encryption Pipeline -->
+    <section id="crypto" class="flow-box">
+      <h2 class="section-title">3. File Segmentation & Web Crypto Pipeline</h2>
+      <p class="section-desc">Step-by-step cryptographic sequence executed within the browser's SubtleCrypto sandbox.</p>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">STAGE 01</div>
+          <div class="step-title">File Slicing</div>
+          <div class="step-desc">Browser slices binary file into configurable 1 MiB chunks. Reads array buffers in memory without uploading.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">STAGE 02</div>
+          <div class="step-title">PBKDF2 Key Derivation</div>
+          <div class="step-desc">Generates 16-byte random salt. Derives 256-bit AES-GCM key from user passphrase using 100,000 iterations of PBKDF2-HMAC-SHA-256.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">STAGE 03</div>
+          <div class="step-title">AES-256-GCM Encryption</div>
+          <div class="step-desc">Generates unique 96-bit IV per chunk. Encrypts block with 128-bit authentication tag. Computes SHA-256 checksum of ciphertext.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">STAGE 04</div>
+          <div class="step-title">Direct S3 Presigned Transfer</div>
+          <div class="step-desc">Requests signed PUT URL from EC2 API. Streams ciphertext directly to private S3 bucket. Registers IV and checksum in RDS.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Faculty Demonstration Checklist -->
+    <section id="demo" style="margin-bottom: 4rem;">
+      <h2 class="section-title">4. Faculty Demonstration Checklist (5–7 Minutes)</h2>
+      <p class="section-desc">Follow this exact sequence during the college laboratory demonstration.</p>
+
+      <div class="card" style="padding: 1.5rem; overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Minute</th>
+              <th>Demonstration Step</th>
+              <th>Expected Output & Evidence</th>
+              <th>AWS Service Verified</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>0:00 - 1:00</strong></td>
+              <td>Open ShardSafe Vault & Explain Problem</td>
+              <td>Live dashboard showing verified PostgreSQL metrics & active cloud health cards.</td>
+              <td><code>EC2 + RDS</code></td>
+            </tr>
+            <tr>
+              <td><strong>1:00 - 2:30</strong></td>
+              <td>Upload Sample PDF / Image with Passphrase</td>
+              <td>Interactive Block Matrix visualizes real-time slicing, PBKDF2 key derivation, and direct S3 streaming.</td>
+              <td><code>Browser WebCrypto + S3</code></td>
+            </tr>
+            <tr>
+              <td><strong>2:30 - 3:30</strong></td>
+              <td>Show AWS S3 & RDS Console Records</td>
+              <td>S3 console reveals opaque encrypted blocks: <code>vault/{userId}/{fileId}/part-000001.bin</code>. RDS displays segment IVs and checksums.</td>
+              <td><code>Amazon S3 + Amazon RDS</code></td>
+            </tr>
+            <tr>
+              <td><strong>3:30 - 4:45</strong></td>
+              <td>Demonstrate Decryption & Wrong Passphrase</td>
+              <td>Enter bad passphrase: AES-GCM authentication tags fail immediately. Enter correct passphrase: file reconstructs cleanly.</td>
+              <td><code>SubtleCrypto Sandbox</code></td>
+            </tr>
+            <tr>
+              <td><strong>4:45 - 6:00</strong></td>
+              <td>Open CloudFront Documentation Website</td>
+              <td>Live HTTPS CloudFront distribution serving static documentation via Origin Access Control (OAC).</td>
+              <td><code>Amazon CloudFront</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>ShardSafe • Secure Cloud File Vault with Block-Level Encryption</p>
+    <p style="margin-top: 0.5rem; color: #64748b;">Built with Node.js, Express, TypeScript, React, PostgreSQL RDS, Amazon S3, Amazon CloudFront, and Web Crypto API.</p>
+  </footer>
+
+</body>
+</html>

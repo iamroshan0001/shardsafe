@@ -67,13 +67,14 @@
 
 ### Phase 1: Show Cloud Health Telemetry (30 Seconds)
 1. Open your browser and navigate to:
-   `http://<YOUR-EC2-IP>:5000/api/health`
+   `http://localhost:5000/api/health`
 2. **What to say to faculty**:
-   > *"Sir/Ma'am, here is the live telemetry endpoint running from our Amazon EC2 instance in the ap-south-1 Mumbai region. As you can see in the JSON response, our database is connected to Amazon RDS PostgreSQL and our storage is connected to Amazon S3."*
+   > *"Sir/Ma'am, here is the live telemetry endpoint. As you can see in the JSON response, our database is connected directly to Amazon RDS PostgreSQL (`isRealRDS: true`), and our block storage is connected to Amazon S3 (`isRealS3: true`)."*
 
 ### Phase 2: Demonstrate Block Segmentation & Live Upload (2 Minutes)
-1. Open the frontend UI at `http://localhost:5174/` (connected to EC2 backend).
-2. Log in or create an account.
+1. Open the frontend UI at your CloudFront URL:
+   `https://d2uik681lagcwn.cloudfront.net` (in Brave Browser).
+2. Log in with `roshan@gmail.com` or create an account.
 3. Click **Upload to Secure Vault**.
 4. Select a **3 MB to 5 MB file** (e.g., a PDF document or high-resolution image).
 5. Point to the **Block Size** option:
@@ -98,8 +99,9 @@
    > *"Even with full administrative access to the AWS S3 console, the cloud provider only sees unreadable ciphertext. The raw file is never transmitted or stored intact."*
 
 ### Phase 4: Prove CloudFront CDN & Global HTTPS (1 Minute)
-1. Open your CloudFront distribution domain (`https://xxxx.cloudfront.net`).
-2. Show the documentation site loading over secure HTTPS.
+1. Open your CloudFront distribution domain:
+   `https://d2uik681lagcwn.cloudfront.net`
+2. Show the ShardSafe frontend application loading over secure HTTPS edge delivery.
 3. Press **F12** ➔ Open the **Network** tab ➔ Refresh the page.
 4. Click the request and point to the HTTP response header:
    - **`x-cache: Hit from cloudfront`**

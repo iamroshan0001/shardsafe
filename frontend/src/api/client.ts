@@ -116,7 +116,8 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const res = await fetch(`/api${endpoint}`, {
+    const apiBase = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 'http://localhost:5000' : '');
+    const res = await fetch(`${apiBase}/api${endpoint}`, {
       ...options,
       headers,
     });

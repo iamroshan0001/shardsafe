@@ -18,25 +18,33 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// CORS Configuration
+// CORS Configuration — allowed origins (Amazon RDS & CloudFront Connected)
 const allowedOrigins = [
   config.frontendOrigin,
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
+  // Amazon CloudFront CDN
+  'https://d2uik681lagcwn.cloudfront.net',
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, or S3/CloudFront redirects)
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    // Allow: no origin (curl/mobile/local), explicit list, any CloudFront distribution
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.cloudfront.net')
+    ) {
       callback(null, true);
     } else {
-      callback(null, true); // Dev flexible or strict in prod
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-amz-server-side-encryption'],
 }));
 

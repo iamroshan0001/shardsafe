@@ -369,8 +369,8 @@ class DatabaseManager {
       return { rows: logs.map((l) => ({ ...l })), rowCount: logs.length };
     }
 
-    // 15. Stats query
-    if (upper.includes('COUNT(F.ID)') || upper.includes('STATS')) {
+    // 15. Stats query (matches the real SQL used by /api/stats)
+    if (upper.includes('COUNT(F.ID)') || upper.includes('STATS') || upper.includes('COUNT(F.ID) AS FILE_COUNT')) {
       const user_id = params[0];
       const userFiles = this.localStore.files.filter((f) => f.user_id === user_id && f.status === 'completed');
       const fileIds = new Set(userFiles.map((f) => f.id));

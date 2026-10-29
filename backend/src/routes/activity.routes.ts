@@ -26,7 +26,21 @@ router.get('/stats', requireAuth, async (req: AuthenticatedRequest, res: Respons
   try {
     const userId = req.user!.id;
     const [statsRes, dbStatus, storageStatus] = await Promise.all([
-      db.query('SELECT STATS', [userId]),
+      db.query(
+        `SELECT
+          COUNT(f.id) AS file_count,
+          COALESCE(SUM(f.segment_count), 0) AS segment_count,
+          COALESCE(SUM(f.original_size), 0) AS total_bytes,
+          COALESCE((
+            SELECT SUM(fs.encrypted_size)
+            FROM file_segments fs
+            JOIN files f2 ON f2.id = fs.file_id
+            WHERE f2.user_id = $1 AND f2.status = 'completed'
+          ), 0) AS total_encrypted_bytes
+        FROM files f
+        WHERE f.user_id = $1 AND f.status = 'completed'`,
+        [userId]
+      ),
       db.getStatus(),
       storageService.getStatus(),
     ]);
